@@ -44,6 +44,7 @@ A_blacks = [2.0,2.0,1.2,0.6,0.4]
 em_it = int(sys.argv[1])
 
 room = POM_room(em_it)
+
 POMLayers1.room = room #TODO : modify POMLayers1 so that we don't need room, just config
 POMLauncher = POMLayers1.pomLayer()
 POMLauncher.set_POM_params(a = As[em_it],alpha_black = A_blacks[em_it],prior_factor = 230)
