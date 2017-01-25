@@ -5,6 +5,7 @@ import os
 
 from joblib import Parallel, delayed
 import multiprocessing
+import Config
 
 '''
 Need to be loaded with a room attached using :

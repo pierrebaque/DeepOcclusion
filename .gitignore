@@ -10,3 +10,5 @@ VGG/**/*.pickle
 *.pyc
 *.avi
 *.ipynb
+*.txt
+Config.py
