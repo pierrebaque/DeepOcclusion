@@ -106,7 +106,10 @@ def prepare_Labels(em_it):
             #print 'fid,cam_id',fid,cam_id
             #Get the map of labels that we want to predict
             out_map = np.zeros((H/CNN_factor,W/CNN_factor,5)) -1
-            bkg = np.asarray(Image.open(Config.bkg_path%(cam_id,fid))) 
+            if Config.use_bg_pretrained:
+                bkg = 1
+            else:
+                bkg = np.asarray(Image.open(Config.bkg_path%(cam_id,fid))) 
             
             for I in range(H/CNN_factor):
                 for J in range(W/CNN_factor):
@@ -122,10 +125,12 @@ def prepare_Labels(em_it):
                         out_map[I,J,0] = inside #It is under the dimension of the full image
                         out_map[I,J,1:] = getshift(CNN_factor*I,CNN_factor*J,selected_rectangle)
             
-            H_bkg,W_bkg = bkg.shape #Not exactly the same as out map because of border treatment of CNN
-            out_map[0:H_bkg,0:W_bkg,0] *= bkg
-            out_map[H_bkg:,:,0] = 0
-            out_map[:,W_bkg:,0] = 0
+
+            if Config.use_bg_pretrained == False:
+                H_bkg,W_bkg = bkg.shape #Not exactly the same as out map because of border treatment of CNN
+                out_map[0:H_bkg,0:W_bkg,0] *= bkg
+                out_map[H_bkg:,:,0] = 0
+                out_map[:,W_bkg:,0] = 0
 
             #Do data augmentation with cropping and resizing and save
             img = np.asarray(Image.open(Config.rgb_name_list[cam_id]%fid)) 
