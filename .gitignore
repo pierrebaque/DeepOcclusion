@@ -1,0 +1,12 @@
+**/EM*/**
+bkg/c*
+Results/validation/**
+tracking/pyKSP
+tracking/results/**
+VGG/**/*.pickle
+*.png
+*.pom
+*.dat
+*.pyc
+*.avi
+*.ipynb
