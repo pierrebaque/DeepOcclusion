@@ -128,10 +128,10 @@ class POM_room(object):
                         rand_H,rand_W = random.randint(0,H-1),random.randint(0,W-1)
                         templates_array[n_parts*cam + part,i,:] = np.asarray([rand_H,rand_W,rand_H,rand_W])
                 #now add full box in last position
-                x0 = max(bboxes[i][1],0)
-                y0 = max(bboxes[i][0],0)
-                x1 = min(bboxes[i][3],H-1)
-                y1 = min(bboxes[i][2],W-1)
+                x0 = min(max(bboxes[i][1],0),H-1)
+                y0 = min(max(bboxes[i][0],0),W-1)
+                x1 = min(max(bboxes[i][3],0),H-1)
+                y1 = min(max(bboxes[i][2],0),W-1)
 
                 templates_array[n_parts*cam + n_parts - 1,i,:] = np.asarray([x0,y0,x1,y1])
         
