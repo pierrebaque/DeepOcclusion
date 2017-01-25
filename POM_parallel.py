@@ -44,7 +44,7 @@ A_blacks = [2.0,2.0,1.2,0.6,0.4]
 em_it = int(sys.argv[1])
 
 room = POM_room(em_it)
-print 'room created'
+
 POMLayers1.room = room #TODO : modify POMLayers1 so that we don't need room, just config
 POMLauncher = POMLayers1.pomLayer()
 POMLauncher.set_POM_params(a = As[em_it],alpha_black = A_blacks[em_it],prior_factor = 230)
@@ -59,7 +59,7 @@ def runsave1(fid,folder_out):
 
 if not os.path.exists(folder_out):
     os.makedirs(folder_out)
-print 'len(room.img_index_list)',len(room.img_index_list)
+
 for block in range(0,len(room.img_index_list)/Config.n_threads+1):
     if Config.verbose:
         print 'POM parallel starting %d-th frame'%(Config.n_threads*block)
