@@ -38,8 +38,8 @@ config.allow_gc =False
 import Config
 
 
-As = [0.0,0.0,0.8,1.4,1.6]
-A_blacks = [2.0,2.0,1.2,0.6,0.4]
+As = Config.EM_As
+A_blacks = Config.EM_blacks
 
 em_it = int(sys.argv[1])
 
@@ -47,7 +47,7 @@ room = POM_room(em_it)
 
 POMLayers1.room = room #TODO : modify POMLayers1 so that we don't need room, just config
 POMLauncher = POMLayers1.pomLayer()
-POMLauncher.set_POM_params(a = As[em_it],alpha_black = A_blacks[em_it],prior_factor = 230)
+POMLauncher.set_POM_params(a = As[em_it],alpha_black = A_blacks[em_it],prior_factor = Config.EM_POM_prior)
 
 folder_out = Config.POM_out_folder%em_it
 
