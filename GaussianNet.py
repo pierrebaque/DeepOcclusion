@@ -344,8 +344,8 @@ class gaussianNet:
         if params_scratch:
             init_gaussian_params =init_all_gaussian_params(self.n_leaves)
             load_gaussian_params_fromshared(self.params_gaussian,init_gaussian_params)
-            self.regression_net.init_regression_params()
-            self.regression_net.load_regression_params_fromshared(self.regression_net.params_regression)
+            initial_reg_params = self.regression_net.init_regression_params()
+            self.regression_net.load_regression_params_fromshared(initial_reg_params)
             
         else:
         
