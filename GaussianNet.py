@@ -454,7 +454,7 @@ class gaussianNet:
         return x_in
 
 
-    def run_test(self,em_it,epoch = -1,reload_params = True,fid_indices = [0],cam = 0,name = 'test'):
+    def run_test(self,em_it,epoch = -1,reload_params = True,fid_indices = Config.img_index_list[0:1],cam = 0,name = 'test'):
         
         if reload_params:
         
