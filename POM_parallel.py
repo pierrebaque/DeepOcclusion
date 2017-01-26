@@ -39,7 +39,7 @@ import Config
 
 
 As = Config.EM_As
-A_blacks = Config.EM_blacks
+A_blacks = Config.EM_Ablacks
 
 em_it = int(sys.argv[1])
 
