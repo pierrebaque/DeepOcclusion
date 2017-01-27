@@ -85,10 +85,9 @@ class gaussianNet:
         ## Regression Network to produce probabilities
         ##Change here to switch between tree and flat
 
-        regression_net = Flat3.Flat3(mNet,y_activ_regression, mBGsub,n_leaves,p_drop = p_drop)
+        self.regression_net = Flat3.Flat3(mNet,y_activ_regression, mBGsub,n_leaves,p_drop = p_drop)
 
-        p_leaves = regression_net.p_leaves
-        self.regression_net = regression_net
+        p_leaves = self.regression_net.p_leaves
 
         ## Gaussian leaves
 
@@ -120,7 +119,7 @@ class gaussianNet:
 
         # Updates for decision parameter
         ## For regression tree/Flat
-        updates_decision = Adam(regression_cost,regression_net.params_regression,lr=Config.Regrate)
+        updates_decision = Adam(regression_cost,self.regression_net.params_regression,lr=Config.Regrate)
         updates_bg = Adam(bg_cost,mBGsub.params,lr=Config.BGrate)
 
         ## Updates for gaussian parameters gaussian_maximisation
@@ -163,8 +162,6 @@ class gaussianNet:
                                        outputs=[p_foreground,all_p,all_gaussian_parameters],
                                        updates=[], allow_input_downcast=True,on_unused_input='warn')
         
-        
-
         
     ########
         
@@ -306,7 +303,8 @@ class gaussianNet:
         self.set_data_path(em_it)
         
         batch_size = 4
-        generated_training_set_size = len(Config.data_augmentation_proportions)*len(Config.cameras_list)*len(Config.img_index_list) 
+        generated_training_set_size = (len(Config.data_augmentation_proportions)
+        *len(Config.cameras_list)*len(Config.img_index_list))
         epoch_set_size = 400
         update_gaussian_every = 100
         gaussian_fitting_size = 500
@@ -344,8 +342,8 @@ class gaussianNet:
         if params_scratch:
             init_gaussian_params =init_all_gaussian_params(self.n_leaves)
             load_gaussian_params_fromshared(self.params_gaussian,init_gaussian_params)
-            initial_reg_params = self.regression_net.init_regression_params()
-            self.regression_net.load_regression_params_fromshared(initial_reg_params)
+            random_reg_params = self.regression_net.get_random_regression_params()
+            self.regression_net.load_regression_params(random_reg_params)
             
         else:
         
@@ -510,6 +508,8 @@ class gaussianNet:
             img[0:H_re,0:W_re,0] = img[0:H_re,0:W_re,i]*0.5 + (foreground)*100
 
         plt.imsave(Config.img_logs + name + '2.png', img)
+        
+        return p_bin_np
                  
                  
     def run_inference(self,em_it,bg_pretrained = False):
@@ -553,4 +553,8 @@ class gaussianNet:
                 np.save(emit_parts_root+ 'c%d/%d.npy'%(cam,fid),parts_out)
 
         np.savetxt(emit_parts_root + 'gaussian_params.txt',np.int32(all_gaussian_parameters),fmt='%d')
+        
+        
+                 
+
 

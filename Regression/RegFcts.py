@@ -24,6 +24,9 @@ def floatX(X):
 def init_weights(shape):
     return theano.shared(floatX(np.random.randn(*shape) * 0.01))
 
+def init_weights_np(shape):
+    return floatX(np.random.randn(*shape) * 0.01)
+
 def decision_node(last_CNN_layer,p_in,w0,b0,w1,b1,batch_size):
     linear_0 = conv2d(last_CNN_layer, w0)
     hidden = T.nnet.sigmoid(linear_0+T.repeat(b0,batch_size,axis=0).dimshuffle(0, 'x', 'x', 'x'))
@@ -111,6 +114,27 @@ def init_FC3_params(size_last_convolution,n_leaves,hidden_0_size = 300, hidden_1
 
             
     return all_FC_params
+
+def random_FC3_params(size_last_convolution,n_leaves,hidden_0_size = 300, hidden_1_size =80 ):
+    '''
+    Same as init_FC3_params, except that all params are in numpy form, it is used to re-initialise params
+    '''
+    all_FC_params = []  
+    
+    #first layer
+    all_FC_params.append(init_weights_np((hidden_0_size,size_last_convolution,1,1)))
+    all_FC_params.append(np.zeros((1,hidden_0_size),dtype=theano.config.floatX))
+
+    #second layer
+    all_FC_params.append(init_weights_np((hidden_1_size,hidden_0_size,1,1)))
+    all_FC_params.append(np.zeros((1,hidden_1_size),dtype=theano.config.floatX))
+    #third layer
+    all_FC_params.append(init_weights_np((n_leaves,hidden_1_size,1,1)))
+    all_FC_params.append(np.zeros((1,n_leaves),dtype=theano.config.floatX))
+
+            
+    return all_FC_params
+
 
 
 def create_tree_probas_list(x_activ, p_foreground,params_tree,tree_depth,batch_size):

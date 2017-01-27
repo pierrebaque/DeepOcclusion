@@ -59,6 +59,10 @@ class Flat3(object):
 		self.params_regression = RegFcts.init_FC3_params(self.size_last_convolution,self.n_leaves,hidden_0_size = 300,hidden_1_size = 80)
 		return self.params_regression
     
+	def get_random_regression_params(self):
+		random_params_regression = RegFcts.random_FC3_params(self.size_last_convolution,self.n_leaves,hidden_0_size = 300,hidden_1_size = 80)
+		return random_params_regression
+    
 	def load_regression_params(self,params_list):
         
 		self.params_regression[0].set_value(params_list[0])
