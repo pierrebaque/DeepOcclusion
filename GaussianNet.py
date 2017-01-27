@@ -419,6 +419,10 @@ class gaussianNet:
 
         params_regression= self.regression_net.save_regression_params()
         gaussian_params = save_gaussian_params(self.params_gaussian)
+        
+        if not os.path.exists(Config.net_params_path  + 'EM%d/'):
+            os.mkdir(Config.net_params_path  + 'EM%d/')
+            
         with open(Config.net_params_path  + 'EM%d/params_regression.pickle'%em_it,'wb') as a:
             pickle.dump(params_regression,a)
         with open(Config.net_params_path  + 'EM%d/params_gaussian.pickle'%em_it,'wb') as a:
