@@ -48,8 +48,8 @@ import Config
 
 #Initialise parts with BKG-sub
 #Uncomment if needed
-room = POM_room(0,with_templates=False)
-init_parts(Config.bkg_path)
+# room = POM_room(0,with_templates=False)
+# init_parts(Config.bkg_path)
 
 
 # In[ ]:
@@ -62,13 +62,15 @@ em_it = 0
 parts_predictor = gaussianNet()
 verbose = True
 
-for em_it in range(1,5):
-    if em_it > 1:
-        os.system("python POM_parallel.py " + str(em_it))
+parts_predictor.run_inference(0,bg_pretrained = Config.use_bg_pretrained)
 
-        #Sample Z and prepare labels for NN
-        ZtoY.SampleZ(em_it)
-        ZtoY.prepare_Labels(em_it)
+for em_it in range(1,5):
+
+    os.system("python POM_parallel.py " + str(em_it))
+
+    #Sample Z and prepare labels for NN
+    ZtoY.SampleZ(em_it)
+    ZtoY.prepare_Labels(em_it)
 
     #parts_predictor.train_bg(em_it)
     parts_predictor.train_parts(em_it,bg_pretrained = Config.use_bg_pretrained, params_scratch = True)

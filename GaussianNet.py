@@ -552,7 +552,7 @@ class gaussianNet:
                 p_bin_np = np.asarray(all_p[0]).transpose(1,2,0)
                 p_foreground_np = np.asarray(p_foreground[0]).transpose(1,2,0)
                 
-                parts_out = np.concatenate([p_bin_np,p_foreground_np],axis =2)
+                parts_out = np.concatenate([p_bin_np>0.15,p_foreground_np>0.2],axis =2)
                  
                 np.save(emit_parts_root+ 'c%d/%d.npy'%(cam,fid),parts_out)
 
