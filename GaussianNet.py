@@ -297,7 +297,7 @@ class gaussianNet:
 
 
 
-    def train_parts(self,em_it,resume_training_round = 0,params_scratch = False,bg_pretrained = False):
+    def train_parts(self,em_it,resume_training_round = 0,params_scratch = False,bg_pretrained = True):
         # regression learning params
         
         self.set_data_path(em_it)
@@ -516,7 +516,7 @@ class gaussianNet:
         return p_bin_np
                  
                  
-    def run_inference(self,em_it,bg_pretrained = False):
+    def run_inference(self,em_it,bg_pretrained = True):
         
         if bg_pretrained:
             '''
