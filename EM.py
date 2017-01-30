@@ -64,7 +64,7 @@ verbose = True
 
 parts_predictor.run_inference(0,bg_pretrained = Config.use_bg_pretrained)
 
-for em_it in range(1,5):
+for em_it in range(4,7):
 
     os.system("python POM_parallel.py " + str(em_it))
 
