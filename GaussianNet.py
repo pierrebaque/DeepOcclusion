@@ -520,17 +520,22 @@ class gaussianNet:
         
         if bg_pretrained:
             '''
-            Load BG parameters computed in previous step
+            Load default BG parameters
             '''
             params_bg = pickle.load(open('./VGG/models/params_BG.pickle'))
             self.mBGsub.setParams(params_bg)
+        else:
+            '''
+            Load BG parameters computed in previous step
+            '''
+            params_bg = pickle.load(open(Config.net_params_path + 'EM%d/params_BG.pickle'%(em_it)))
+            self.mBGsub.setParams(params_bg)
+
 
         
         self.data_path = Config.labels_folder%em_it + 'trainImg/img%08d.png'
         self.labels_path = Config.labels_folder%em_it + 'trainLabels/labels%08d.txt'
         
-        params_bg = pickle.load(open(Config.net_params_path + 'EM%d/params_BG.pickle'%(em_it)))
-        self.mBGsub.setParams(params_bg)
         params_regression= pickle.load(open(Config.net_params_path + 'EM%d/params_regression.pickle'%(em_it)))
         self.regression_net.load_regression_params(params_regression)
         gaussian_params = pickle.load(open(Config.net_params_path + 'EM%d/params_gaussian.pickle'%(em_it)))
@@ -552,7 +557,7 @@ class gaussianNet:
                 p_bin_np = np.asarray(all_p[0]).transpose(1,2,0)
                 p_foreground_np = np.asarray(p_foreground[0]).transpose(1,2,0)
                 
-                parts_out = np.concatenate([p_bin_np,p_foreground_np],axis =2)
+                parts_out = np.concatenate([p_bin_np>0.15,p_foreground_np>0.2],axis =2)
                  
                 np.save(emit_parts_root+ 'c%d/%d.npy'%(cam,fid),parts_out)
 
