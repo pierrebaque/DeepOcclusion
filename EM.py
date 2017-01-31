@@ -62,7 +62,7 @@ em_it = 0
 parts_predictor = gaussianNet()
 verbose = True
 
-parts_predictor.run_inference(0,bg_pretrained = Config.use_bg_pretrained)
+parts_predictor.run_inference(0,bg_pretrained = Config.use_bg_pretrained,params_scratch = True)
 
 for em_it in range(1,7):
 
