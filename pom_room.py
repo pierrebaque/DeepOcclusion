@@ -122,7 +122,7 @@ class POM_room(object):
                     y0 = max(y0,0)
                     x1 = min(x1,H-1)
                     y1 = min(y1,W-1)
-                    if (x1 - x0) > 3 and (y1 - y0) > 3:
+                    if (x1 - x0) > H/50.0 and (y1 - y0) > W/50.0: #Arbitrary criterium tu prevent too small BBs
                         templates_array[n_parts*cam + part,i,:] = np.asarray([x0,y0,x1,y1])
                     else:
                         rand_H,rand_W = random.randint(0,H-1),random.randint(0,W-1)

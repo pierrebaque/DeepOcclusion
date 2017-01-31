@@ -6,6 +6,20 @@ from munkres import Munkres, print_matrix
 import codecs
 import json
 import copy 
+import Config
+
+#To remove!
+
+import matplotlib
+matplotlib.use("nbagg")
+import skimage
+import skimage.filters
+import skimage.morphology
+import math
+import numpy.linalg as la
+import numpy as np
+import matplotlib.pyplot as plt
+
 
 class POM_evaluator(object):
     
@@ -19,7 +33,7 @@ class POM_evaluator(object):
         self.q_thresh = q_thresh
 
 
- 
+    #For ETH dataset
     def get_GT_coordinates_fromjson(self,fid):
         #ShiftX is a momnetaneous hack to match detection and labelling after modification
         '''
@@ -28,7 +42,7 @@ class POM_evaluator(object):
         '''
         room = self.room
         
-        obj_text =codecs.open(self.GT_labels_path_json%room.img_index_list[fid], 'r', encoding='utf-8').read()
+        obj_text =codecs.open(self.GT_labels_path_json%fid, 'r', encoding='utf-8').read()
         b_new = json.loads(obj_text)
         c_new = np.int32(b_new[1:])    
 
@@ -43,6 +57,38 @@ class POM_evaluator(object):
                     GT_coordinates.append(((rec_ID/self.W_GT_grid- self.shiftX)*(1.0*room.H_grid)/(1.0*self.H_GT_grid),(rec_ID%self.W_GT_grid)*(1.0*room.W_grid)/(1.0*self.W_GT_grid)))
 
         return np.asarray(GT_coordinates)
+    
+    #For Terrace Dataset
+    def get_GT_coordinates_terrace(self,fid):
+        #ShiftX is a momnetaneous hack to match detection and labelling after modification
+        '''
+        Input: frame ID as in original dataset
+        Output: coordinates with respect to the resolution of detection (H_grid,W_grid)
+        '''
+        room = self.room
+        
+        all_detections = np.loadtxt('./ground_truth/gt_terrace1.txt')
+        detections = all_detections[fid]
+        GT_coordinates = []
+
+        for det_id in range(detections.shape[0]):
+                rec_ID = detections[det_id]
+                #print rec_ID
+                if rec_ID > -1:
+                    x = rec_ID%room.H_grid
+                    y = room.W_grid - rec_ID/room.H_grid
+
+                    #HACK GT
+                    # !!!! KEEP PARAMETERS!!!
+                    #x = np.round(0.82*x + 2)
+                    #y = np.round(0.77*y + 5)
+                    x = np.round(0.89*x + 2)
+                    y = np.round(0.82*y + 5)
+                    
+                    GT_coordinates.append((x,y))
+
+        return np.asarray(GT_coordinates)
+
 
     
     def hungarian_matching(self,GT_coordinates,det_coordinates,verbose = False):
@@ -103,6 +149,25 @@ class POM_evaluator(object):
         total,TP,FP,FN = self.hungarian_matching(GT_coordinates,det_coordinates,verbose = False)
 
         return total,TP.shape[0],FP.shape[0],FN.shape[0]
+    
+    def get_Hungarian_score_terrace(self,Q_out,fid,show = False):
+        GT_coordinates = self.get_GT_coordinates_terrace(fid)
+        det_coordinates = self.room.get_coordinates_from_Q(Q_out[-1],q_thresh = self.q_thresh)
+        total,TP,FP,FN = self.hungarian_matching(GT_coordinates,det_coordinates,verbose = False)
+        
+        if show:
+            MAP_out = np.zeros((self.room.H_grid,self.room.W_grid))
+            for (i,j) in GT_coordinates:
+                MAP_out[int(i),int(j)] = 1
+            for (i,j) in det_coordinates:
+                MAP_out[int(i),int(j)] += 2
+
+            plt.imshow(MAP_out)
+            plt.colorbar()
+            plt.show()
+
+        return total,TP.shape[0],FP.shape[0],FN.shape[0]
+
     
         
     

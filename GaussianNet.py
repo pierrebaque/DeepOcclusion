@@ -516,7 +516,7 @@ class gaussianNet:
         return p_bin_np
                  
                  
-    def run_inference(self,em_it,bg_pretrained = True):
+    def run_inference(self,em_it,bg_pretrained = True,params_scratch = False):
         
         if bg_pretrained:
             '''
@@ -533,13 +533,18 @@ class gaussianNet:
 
 
         
-        self.data_path = Config.labels_folder%em_it + 'trainImg/img%08d.png'
-        self.labels_path = Config.labels_folder%em_it + 'trainLabels/labels%08d.txt'
-        
-        params_regression= pickle.load(open(Config.net_params_path + 'EM%d/params_regression.pickle'%(em_it)))
-        self.regression_net.load_regression_params(params_regression)
-        gaussian_params = pickle.load(open(Config.net_params_path + 'EM%d/params_gaussian.pickle'%(em_it)))
-        load_gaussian_params(self.params_gaussian,gaussian_params)
+        # self.data_path = Config.labels_folder%em_it + 'trainImg/img%08d.png'
+        # self.labels_path = Config.labels_folder%em_it + 'trainLabels/labels%08d.txt'
+        if params_scratch:
+            init_gaussian_params =init_all_gaussian_params(self.n_leaves)
+            load_gaussian_params_fromshared(self.params_gaussian,init_gaussian_params)
+            random_reg_params = self.regression_net.get_random_regression_params()
+            self.regression_net.load_regression_params(random_reg_params)
+        else:       
+            params_regression= pickle.load(open(Config.net_params_path + 'EM%d/params_regression.pickle'%(em_it)))
+            self.regression_net.load_regression_params(params_regression)
+            gaussian_params = pickle.load(open(Config.net_params_path + 'EM%d/params_gaussian.pickle'%(em_it)))
+            load_gaussian_params(self.params_gaussian,gaussian_params)
                  
         #Prepare output folders
         emit_parts_root = Config.parts_root_folder%(em_it+1)
