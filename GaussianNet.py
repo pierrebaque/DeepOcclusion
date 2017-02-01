@@ -456,13 +456,22 @@ class gaussianNet:
         return x_in
 
 
-    def run_test(self,em_it,epoch = -1,reload_params = True,fid_indices = Config.img_index_list[0:1],cam = 0,name = 'test'):
+    def run_test(self,em_it,epoch = -1,reload_params = True,fid_indices = Config.img_index_list[0:1],cam = 0,name = 'test',bg_pretrained = True):
         
         if reload_params:
         
             if epoch == -1:
-                params_bg = pickle.load(open(Config.net_params_path + 'EM%d/params_BG.pickle'%(em_it)))
-                self.mBGsub.setParams(params_bg)
+                
+                if bg_pretrained:
+                    '''
+                    Load default BG parameters
+                    '''
+                    params_bg = pickle.load(open('./VGG/models/params_BG.pickle'))
+                    self.mBGsub.setParams(params_bg)
+                else:
+                    params_bg = pickle.load(open(Config.net_params_path + 'EM%d/params_BG.pickle'%(em_it)))
+                    self.mBGsub.setParams(params_bg)
+                    
                 params_regression= pickle.load(open(Config.net_params_path + 'EM%d/params_regression.pickle'%(em_it)))
                 self.regression_net.load_regression_params(params_regression)
                 gaussian_params = pickle.load(open(Config.net_params_path + 'EM%d/params_gaussian.pickle'%(em_it)))
@@ -470,8 +479,18 @@ class gaussianNet:
 
 
             else:
-                params_bg = pickle.load(open(Config.net_params_path + 'temp/params_BG_%d.pickle'%(epoch)))
-                self.mBGsub.setParams(params_bg)
+                
+                if bg_pretrained:
+                    '''
+                    Load default BG parameters
+                    '''
+                    params_bg = pickle.load(open('./VGG/models/params_BG.pickle'))
+                    self.mBGsub.setParams(params_bg)
+
+                else:
+                    params_bg = pickle.load(open(Config.net_params_path + 'temp/params_BG_%d.pickle'%(epoch)))
+                    self.mBGsub.setParams(params_bg)
+                    
                 params_regression= pickle.load(open(Config.net_params_path + 'temp/params_regression_%d.pickle'%(epoch)))
                 self.regression_net.load_regression_params(params_regression)
                 gaussian_params = pickle.load(open(Config.net_params_path + 'temp/params_gaussian_%d.pickle'%(epoch)))

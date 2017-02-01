@@ -68,9 +68,11 @@ for block in range(0,len(room.img_index_list)/Config.n_threads+1):
     
 
 
-if Config.do_GS_validation:
-    #Run grid search for params
+if Config.do_GS_validation:    
+    #Change image list to run validation
     room.img_index_list = Config.val_index_list
+
+    #Run grid search for params
     folder_out = Config.GS_out + './grid_search_EM%d'%em_it
     
     if not os.path.exists(Config.GS_out):
