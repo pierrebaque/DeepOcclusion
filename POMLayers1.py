@@ -106,12 +106,11 @@ class pomLayer:
         self.priors_factor.set_value(np.asarray(np.log(0.001)*prior_factor,dtype='float32'))
 
     
-    def run_POM(self,fid,getZ = False,n_iter_pom = 150,step_0 = 0.005,useshift = False):
+    def run_POM(self,fid,getZ = False,n_iter_pom = 150,step_0 = 0.005,T_0 = 10.0,useshift = False):
     #Load image into tensor
         #Params
         thresh =0.2
         epsilon_prob = 1e-7
-        T_0 = 10.0
         initial_q = 0.01
         #####
 
