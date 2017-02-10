@@ -33,7 +33,7 @@ def SampleZ(em_it):
 
         Q_loc = get_table(Config.POM_out_folder%em_it + '%08d.dat'%(fid))
         flat_q = np.clip(Q_loc,1e-3,0.999999)
-        detections = np.where(flat_q>0.1)
+        detections = np.where(flat_q>0.95)
         
         pid = 0
         for detection in detections[0]:

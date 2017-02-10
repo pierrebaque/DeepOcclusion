@@ -65,7 +65,7 @@ else:
     pass
 
 
-for em_it in range(2,7):
+for em_it in range(1,7):
     
     if em_it > 1:
         os.system("python POM_parallel.py " + str(em_it))

@@ -114,7 +114,7 @@ class gaussianNet:
         regression_cost =-T.sum((T.log(P_T[:,:,:,:]*y_inside + epsilon)*y_inside))/(T.sum(y_inside))
 
         ## Background
-        bg_cost = (T.nnet.binary_crossentropy(p_foreground, y_bg)*(5*y_bg +1*(1-y_bg))).mean()
+        bg_cost = (T.nnet.binary_crossentropy(p_foreground, y_bg)*(y_bg +1*(1-y_bg))).mean()
 
 
         # Updates for decision parameter
