@@ -143,10 +143,22 @@ class POM_evaluator(object):
 
         return LossLabels,LossMask
 
-    def get_Hungarian_score(self,Q_out,fid):
+    def get_Hungarian_score(self,Q_out,fid, show = False):
         GT_coordinates = self.get_GT_coordinates_fromjson(fid)
         det_coordinates = self.room.get_coordinates_from_Q(Q_out[-1],q_thresh = self.q_thresh)
         total,TP,FP,FN = self.hungarian_matching(GT_coordinates,det_coordinates,verbose = False)
+        
+        if show:
+            MAP_out = np.zeros((self.room.H_grid,self.room.W_grid))
+            for (i,j) in GT_coordinates:
+                MAP_out[int(i),int(j)] = 1
+            for (i,j) in det_coordinates:
+                MAP_out[int(i),int(j)] += 2
+
+            plt.imshow(MAP_out)
+            plt.colorbar()
+            plt.show()
+
 
         return total,TP.shape[0],FP.shape[0],FN.shape[0]
     

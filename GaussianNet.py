@@ -243,7 +243,7 @@ class gaussianNet:
         if resume_training_round_BG==0:
             f_logs = open(train_bg_logs_path,  'w')
             f_logs.close() 
-            if em_it > 0:
+            if em_it > 1:
                 params_bg = pickle.load(open(Config.net_params_path + 'EM%d/params_BG.pickle'%(em_it - 1)))
                 self.mBGsub.setParams(params_bg)
 
@@ -348,7 +348,7 @@ class gaussianNet:
         else:
         
             if resume_training_round==0:
-                if em_it > 0:
+                if em_it > 1:
                     '''
                     Load parameters from previous EM step
                     '''

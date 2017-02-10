@@ -6,8 +6,8 @@ import sys
 
 import Config
 
-def init_parts(bkg_path):
-    emit_parts_root = Config.parts_root_folder%0
+def init_parts(bkg_path,em_it = 1):
+    emit_parts_root = Config.parts_root_folder%em_it
     if not os.path.exists(emit_parts_root):
         os.mkdir(emit_parts_root)
 

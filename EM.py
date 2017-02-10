@@ -46,13 +46,6 @@ import Config
 
 # In[11]:
 
-#Initialise parts with BKG-sub
-#Uncomment if needed
-# room = POM_room(0,with_templates=False)
-# init_parts(Config.bkg_path)
-
-
-# In[ ]:
 
 
 #Start iterations
@@ -62,18 +55,28 @@ em_it = 0
 parts_predictor = gaussianNet()
 verbose = True
 
-parts_predictor.run_inference(0,bg_pretrained = Config.use_bg_pretrained,params_scratch = True)
+if Config.use_bg_pretrained:
+    #Initialise parts with background
+    parts_predictor.run_inference(0,bg_pretrained = Config.use_bg_pretrained,params_scratch = True)
+    
+else:
+    #Initialise parts with BKG-sub
+    #init_parts(Config.bkg_path)
+    pass
 
-for em_it in range(1,7):
 
-    os.system("python POM_parallel.py " + str(em_it))
+for em_it in range(2,7):
+    
+    if em_it > 1:
+        os.system("python POM_parallel.py " + str(em_it))
 
-    #Sample Z and prepare labels for NN
-    ZtoY.SampleZ(em_it)
-    ZtoY.prepare_Labels(em_it)
-
-    #parts_predictor.train_bg(em_it)
-    parts_predictor.train_parts(em_it,bg_pretrained = Config.use_bg_pretrained, params_scratch = True)
+        #Sample Z and prepare labels for NN
+        ZtoY.SampleZ(em_it)
+        ZtoY.prepare_Labels(em_it)
+    
+    if not Config.use_bg_pretrained:
+        parts_predictor.train_bg(em_it)
+    parts_predictor.train_parts(em_it,bg_pretrained = Config.use_bg_pretrained, params_scratch = False)
     parts_predictor.run_inference(em_it,bg_pretrained = Config.use_bg_pretrained)
 
 
