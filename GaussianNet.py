@@ -114,7 +114,7 @@ class gaussianNet:
         regression_cost =-T.sum((T.log(P_T[:,:,:,:]*y_inside + epsilon)*y_inside))/(T.sum(y_inside))
 
         ## Background
-        bg_cost = (T.nnet.binary_crossentropy(p_foreground, y_bg)*(y_bg +1*(1-y_bg))).mean()
+        bg_cost = (T.nnet.binary_crossentropy(p_foreground, y_bg)*(3*y_bg +1*(1-y_bg))).mean()
 
 
         # Updates for decision parameter
@@ -535,7 +535,7 @@ class gaussianNet:
         return p_bin_np
                  
                  
-    def run_inference(self,em_it,bg_pretrained = True,params_scratch = False):
+    def run_inference(self,em_it,bg_pretrained = True,params_scratch = False,verbose = False):
         
         if bg_pretrained:
             '''
@@ -576,13 +576,29 @@ class gaussianNet:
                 os.mkdir(emit_parts_root + 'c%d/'%cam)
 
             for fid in Config.img_index_list:
+                if verbose:
+                    print "Running inference for cam %d, fid %d:"%(cam,fid)
+
                 x_in =  gaussianNet.load_batch_run([fid ],cam)
                 p_foreground,all_p,all_gaussian_parameters = self.run_function(x_in)
                 p_bin_np = np.asarray(all_p[0]).transpose(1,2,0)
-                p_foreground_np = np.asarray(p_foreground[0]).transpose(1,2,0)
                 
-                parts_out = np.concatenate([p_bin_np>0.15,p_foreground_np>0.2],axis =2)
-                 
+                if bg_pretrained:
+                    p_foreground_np = np.asarray(p_foreground[0]).transpose(1,2,0)
+                    parts_out = np.concatenate([p_bin_np>0.15,p_foreground_np>0.2],axis =2)
+                    
+                else:
+                    #Load background subtraction
+                    #Output is going to be weighted average of probability predicted by network and background-sub
+                    bkg = cv2.imread(Config.bkg_path%(cam,fid))[:,:,0]>0
+                    bkg_soft = 0.8*bkg + 0.2*(1-bkg)
+                    bkg_factor = bkg_soft/(1-bkg_soft)
+                    p_foreground_np = np.asarray(p_foreground[0]).transpose(1,2,0)*bkg_factor[:,:,np.newaxis]
+                    parts_out = np.concatenate([p_bin_np>0.15,p_foreground_np>0.2],axis =2)
+
+                    
+
+                        
                 np.save(emit_parts_root+ 'c%d/%d.npy'%(cam,fid),parts_out)
 
         np.savetxt(emit_parts_root + 'gaussian_params.txt',np.int32(all_gaussian_parameters),fmt='%d')
