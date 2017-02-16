@@ -55,7 +55,7 @@ def runsave1(fid,folder_out):
     last = len(room.img_index_list)
     if fid < last:
         Q_out,Z_out,Shift = POMLauncher.run_POM(fid)
-        room.save_dat(Q_out,fid,folder_out)
+        room.save_dat(Q_out,fid,folder_out,verbose = True)
 
 if not os.path.exists(folder_out):
     os.makedirs(folder_out)

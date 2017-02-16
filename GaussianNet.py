@@ -110,8 +110,8 @@ class gaussianNet:
         #Objective functions
 
         ## Regression
-        ## !!!!! added P_T[:,0:2,:,:] to quickly resolve the bug in the dataset. Remove later. -> Done
-        regression_cost =-T.sum((T.log(P_T[:,:,:,:]*y_inside + epsilon)*y_inside))/(T.sum(y_inside))
+        #regression_cost =-T.sum((T.log(P_T[:,:,:,:]*y_inside + epsilon)*y_inside))/(T.sum(y_inside))
+        regression_cost =-T.sum((T.log(P_T[:,:,:,:]*y_bg + epsilon)*y_bg))/(T.sum(y_bg))
 
         ## Background
         bg_cost = (T.nnet.binary_crossentropy(p_foreground, y_bg)*(3*y_bg +1*(1-y_bg))).mean()
@@ -594,7 +594,7 @@ class gaussianNet:
                     bkg_soft = 0.8*bkg + 0.2*(1-bkg)
                     bkg_factor = bkg_soft/(1-bkg_soft)
                     p_foreground_np = np.asarray(p_foreground[0]).transpose(1,2,0)*bkg_factor[:,:,np.newaxis]
-                    parts_out = np.concatenate([p_bin_np>0.15,p_foreground_np>0.2],axis =2)
+                    parts_out = np.concatenate([p_bin_np*bkg_factor[:,:,np.newaxis]>0.15,p_foreground_np>0.2],axis =2)
 
                     
 

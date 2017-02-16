@@ -71,8 +71,8 @@ for em_it in range(1,7):
         os.system("python POM_parallel.py " + str(em_it))
 
         #Sample Z and prepare labels for NN
-        ZtoY.SampleZ(em_it)
-        ZtoY.prepare_Labels(em_it)
+    ZtoY.SampleZ(em_it)
+    ZtoY.prepare_Labels(em_it)
     
     if not Config.use_bg_pretrained:
         parts_predictor.train_bg(em_it)

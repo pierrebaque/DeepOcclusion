@@ -210,7 +210,7 @@ class POM_room(object):
         plt.imshow(img_out)
         plt.show()
         
-    def save_dat(self,Q_out,fid,folder_out,iteration = -1):
+    def save_dat(self,Q_out,fid,folder_out,iteration = -1,verbose = False):
         out_path= folder_out + '%08d.dat'%self.img_index_list[fid]
 
         if not os.path.exists(folder_out):
@@ -221,6 +221,8 @@ class POM_room(object):
             string = '%d %f\n'%(i,Q_save[i])
             f.write(string)
         f.close()
+        if verbose:
+            print "Saved file :", out_path
         
     def save_dat_withpath(self,Q_out,out_path,iteration = -1):
 
