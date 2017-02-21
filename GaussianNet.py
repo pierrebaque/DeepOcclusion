@@ -591,10 +591,10 @@ class gaussianNet:
                     #Load background subtraction
                     #Output is going to be weighted average of probability predicted by network and background-sub
                     bkg = cv2.imread(Config.bkg_path%(cam,fid))[:,:,0]>0
-                    bkg_soft = 0.8*bkg + 0.2*(1-bkg)
+                    bkg_soft = 0.65*bkg + 0.35*(1-bkg)
                     bkg_factor = bkg_soft/(1-bkg_soft)
                     p_foreground_np = np.asarray(p_foreground[0]).transpose(1,2,0)*bkg_factor[:,:,np.newaxis]
-                    parts_out = np.concatenate([p_bin_np*bkg_factor[:,:,np.newaxis]>0.15,p_foreground_np>0.2],axis =2)
+                    parts_out = np.concatenate([p_bin_np*bkg_factor[:,:,np.newaxis]>0.3,p_foreground_np>0.2],axis =2)
 
                     
 
