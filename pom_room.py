@@ -10,10 +10,10 @@ import Config
 class POM_room(object):
     
     #def __init__(self,pom_file_path,parts_root_folder,img_index_list,n_parts,resize_pom = 4,cameras_list = range(7),HW_grid = (-1,-1),Sigma_factor = 2,with_templates = True):
-    def __init__(self,em_it,with_templates = True):
+    def __init__(self,parts_root_folder= Config.parts_root_folder,with_templates = True):
         
         # Config about POM templates
-        self.parts_root_folder = Config.parts_root_folder%em_it
+        self.parts_root_folder = parts_root_folder
         self.n_parts = Config.n_parts #Number of classes of classifier. Including foreground class which is the last one
         self.pom_file_path =  Config.pom_file_path
         self.resize_pom = Config.resize_pom #Difference in ratio between dimensions for POM file and images saved (4 when images come from VGG)
@@ -122,7 +122,8 @@ class POM_room(object):
                     y0 = max(y0,0)
                     x1 = min(x1,H-1)
                     y1 = min(y1,W-1)
-                    if (x1 - x0) > H/50.0 and (y1 - y0) > W/50.0: #Arbitrary criterium tu prevent too small BBs
+                    if (x1 - x0) > H/150.0 and (y1 - y0) > W/150.0: #Arbitrary criterium tu prevent too small BBs
+                    #if (x1 - x0) > 3 and (y1 - y0) > 3:
                         templates_array[n_parts*cam + part,i,:] = np.asarray([x0,y0,x1,y1])
                     else:
                         rand_H,rand_W = random.randint(0,H-1),random.randint(0,W-1)
