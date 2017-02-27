@@ -1,3 +1,4 @@
+import matplotlib.pyplot as plt
 import theano
 import theano.tensor as T
 import numpy as np
@@ -6,6 +7,7 @@ import os
 from joblib import Parallel, delayed
 import multiprocessing
 import Config
+
 
 '''
 Need to be loaded with a room attached using :
@@ -17,6 +19,7 @@ prior_factor_shift = 1000
 class pomLayer:
     
     def __init__(self):
+        self.unaries_path = Config.unaries_path
         #Shared variables
         #Higher order
         alphas_np = np.ones(room.n_parts,dtype='float32')
@@ -94,83 +97,7 @@ class pomLayer:
         self.alphas = alphas
         self.priors_factor = priors_factor
 
-    def set_POM_params(self,a,alpha_black,prior_factor):
-
-        #print 'Setting a = %f, p = %f'%(a,p)
-        alphas_np = np.ones(room.n_parts,dtype='float32')
-        alphas_np[0:room.n_parts-1] = a
-        alphas_np[-1] = alpha_black
-        self.alphas.set_value(alphas_np)
-
-        #Unaries
-        self.priors_factor.set_value(np.asarray(np.log(0.001)*prior_factor,dtype='float32'))
-
-    
-    def run_POM(self,fid,getZ = False,n_iter_pom = 150,step_0 = 0.005,T_0 = 10.0,useshift = False):
-    #Load image into tensor
-        #Params
-        thresh =0.2
-        epsilon_prob = 1e-7
-        initial_q = 0.01
-        #####
-
-        templates_array = room.templates_array
-        image = room.load_images_stacked(fid)
-        print image.shape
-
-        indices = templates_array.shape[1]
-        indices_reduced,scores = room.get_indices_above(image,threshold= 0.4)
-        templates_array_reduced = templates_array[:,indices_reduced,:]
-        N_vars = templates_array_reduced.shape[1]
-
-        #set priors
-        priors_np =1.0 + 0.0*templates_array_reduced[0,:,0]
-
-        #reshape image for theano
-        image_reshaped = np.reshape(image,(1,image.shape[0],image.shape[1],image.shape[2]))
-
-        #initialize clampings
-        clampings = np.zeros((2,N_vars))
-        clampings[0] += epsilon_prob 
-        clampings[1] += 1-epsilon_prob 
-        clamplist = [clampings]
-
-        #Choose Q initial
-        Q_init = np.ones(templates_array_reduced.shape[1])*initial_q
-
-        #Launch inference
-        if useshift:
-            Q_out, Shift = self.infer_function(image_reshaped,T_0,step_0,Q_init,priors_np,
-                                                      n_iter_pom,clamplist[0],templates_array_reduced,indices_reduced)
-        else:
-            Q_out = self.infer_function(image_reshaped,T_0,step_0,Q_init,priors_np,
-                                               n_iter_pom,clamplist[0],templates_array_reduced,indices_reduced)
-
-        Z_out  = []
-        if getZ:
-            for Q_t in Q_out:
-                Z_out.append(self.logZ_function(image_reshaped,T_0,step_0,Q_t[:],priors_np,
-                                                       templates_array_reduced,indices_reduced))
-
-        #Plunge Q_out which is defined over reduced templates into complete templates
-
-        Q_out_full =[]
-        for Q_t in Q_out:
-            Q_t_full = np.zeros(templates_array.shape[1]) + epsilon_prob
-            Q_t_full[indices_reduced] = Q_t
-            Q_out_full.append(Q_t_full)
-
-        Shift_full =[]
-        if useshift:
-            for Shift_t in Shift:
-                Shift_t_full = np.zeros((room.n_cams*room.n_parts,templates_array.shape[1],4),dtype = 'int32')
-                Shift_t_full[:,indices_reduced,:] = Shift_t
-                Shift_full.append(Shift_t_full)
-
-        return Q_out_full,Z_out,Shift_full
-    
-    
-
+    #THEANO FUNCTIONS USED IN POM
     @staticmethod
     def compute_aux_image(chan,logQ_abs,theano_templates,H,W):
         '''
@@ -450,4 +377,184 @@ class pomLayer:
                                       non_sequences = Integral_diff)
 
         return result
+    
+
+    #METHODS TO RUN POM
+    
+    def set_POM_params(self,a,alpha_black,prior_factor):
+
+        #print 'Setting a = %f, p = %f'%(a,p)
+        alphas_np = np.ones(room.n_parts,dtype='float32')
+        alphas_np[0:room.n_parts-1] = a
+        alphas_np[-1] = alpha_black
+        self.alphas.set_value(alphas_np)
+
+        #Unaries
+        self.priors_factor.set_value(np.asarray(np.log(0.001)*prior_factor,dtype='float32'))
+
+    
+    def run_POM(self,fid,getZ = False,n_iter_pom = 150,step_0 = 0.005,T_0 = 10.0,useshift = False,use_unaries = True):
+        #Params
+        thresh =0.2
+        epsilon_prob = 1e-7
+        T_0 = 10.0
+        initial_q = 0.01
+        #####
+
+        templates_array = room.templates_array
+        image = room.load_images_stacked(fid)
+
+        indices = templates_array.shape[1]
+        indices_reduced,scores = room.get_indices_above(image,threshold= 0.4)
+
+        #set priors
+        #load unaries
+        if use_unaries:
+            unaries_logp = np.load(self.unaries_path%room.img_index_list[fid])
+            #process them
+            unaries_E = -1*unaries_logp  
+            unaries = unaries_E.clip(0.1,2).min(axis = 0)*2.0
+
+            #Doesn't really bring speedup. WHY??
+            unaries_reduced = unaries[indices_reduced]
+            indices_reduced = indices_reduced[unaries_reduced < 4]
+
+            #Finalize with reduced
+            priors_np = unaries[indices_reduced]
+        else:
+            priors_np = 1.0 + 0.0*templates_array[0,indices_reduced,0]
+
+        templates_array_reduced = templates_array[:,indices_reduced,:]
+        N_vars = templates_array_reduced.shape[1]
+
+        #reshape image for theano
+        image_reshaped = np.reshape(image,(1,image.shape[0],image.shape[1],image.shape[2]))
+
+        #initialize clampings
+        clampings = np.zeros((2,N_vars))
+        clampings[0] += epsilon_prob 
+        clampings[1] += 1-epsilon_prob 
+        clamplist = [clampings]
+
+        #Choose Q initial
+        if use_unaries:
+            Q_init = np.exp(-1*unaries[indices_reduced])
+        else:
+            Q_init = np.ones(templates_array_reduced.shape[1])*initial_q
+        #Launch inference
+        if useshift:
+            Q_out, Shift = self.infer_function(image_reshaped,T_0,step_0,Q_init,priors_np,
+                                                      n_iter_pom,clamplist[0],templates_array_reduced,indices_reduced)
+        else:
+
+            Q_out = self.infer_function(image_reshaped,T_0,step_0,Q_init,priors_np,
+                                               n_iter_pom,clamplist[0],templates_array_reduced,indices_reduced)
+
+        Z_out  = []
+        if getZ:
+            for Q_t in Q_out:
+                Z_out.append(self.logZ_function(image_reshaped,T_0,step_0,Q_t[:],priors_np,
+                                                       templates_array_reduced,indices_reduced))
+
+        #Plunge Q_out which is defined over reduced templates into complete templates
+
+        Q_out_full =[]
+        for Q_t in Q_out:
+            Q_t_full = np.zeros(templates_array.shape[1]) + epsilon_prob
+            Q_t_full[indices_reduced] = Q_t
+            Q_out_full.append(Q_t_full)
+
+        Shift_full =[]
+        if useshift:
+            for Shift_t in Shift:
+                Shift_t_full = np.zeros((room.n_cams*room.n_parts,templates_array.shape[1],4),dtype = 'int32')
+                Shift_t_full[:,indices_reduced,:] = Shift_t
+                Shift_full.append(Shift_t_full)
+
+        return Q_out_full,Z_out,Shift_full
+
+    
+    #OTHER BASELINE METHODS
+    def run_NMS(self,fid,room,rad = 7,thresh_p  = 0.8):
+    #Load image into tensor
+
+        #set priors
+        #load unaries
+        unaries_logp = np.load(self.unaries_path%room.img_index_list[fid])
+        unaries_logp = unaries_logp.clip(np.log(0.2),1000)
+        unaries_logp_max = np.max(unaries_logp,axis = 0)
+        #process them
+        unaries = unaries_logp_max.reshape((room.H_grid,room.W_grid))
+
+        Q_out = np.zeros(room.H_grid*room.W_grid)
+        while unaries.max() > np.log(thresh_p): 
+            #print unaries.max()
+            flat_max = np.argmax(unaries)
+            x,y = flat_max/room.W_grid,flat_max%room.W_grid
+            unaries[max(0,x - rad) : min(room.H_grid,x + rad),max(0,y - rad) : min(room.W_grid,y + rad)] = -100
+            Q_out[flat_max] = 1
+
+        return [Q_out]
+
+    def run_NMS_sum(self,fid,room,rad = 7,thresh_p  = 0.3):
+    #Load image into tensor
+
+        #set priors
+        #load unaries
+        unaries_logp = np.load(self.unaries_path%room.img_index_list[fid])
+        unaries_logp = unaries_logp.clip(np.log(0.1),1000)
+        unaries_logp_sum = np.sum(unaries_logp,axis = 0)
+ 
+        #process them
+        unaries = unaries_logp_sum.reshape((room.H_grid,room.W_grid))
+
+        Q_out = np.zeros(room.H_grid*room.W_grid)
+        while unaries.max() > np.log(thresh_p)*7: 
+
+            flat_max = np.argmax(unaries)
+            x,y = flat_max/room.W_grid,flat_max%room.W_grid
+            unaries[max(0,x - rad) : min(room.H_grid,x + rad),max(0,y - rad) : min(room.W_grid,y + rad)] = -100
+            Q_out[flat_max] = 1
+
+        return [Q_out]
+
+
+    def run_RCNNdetector(self,fid,room,rad = 7,thresh = 0.5):
+    #Load image into tensor
+        #Unaries
+        RCNN_path = '../../../RCNN/Faster-RCNN_TF/tools/ETH_out/c%df%08d.npy'
+
+        Q = np.zeros(room.templates_array.shape[1])
+        for cam in range(room.n_cams):
+            #load dets
+            detections = np.load(RCNN_path%(cam,room.img_index_list[fid]))/resize_pom
+            dets_bottom_x = detections[:,3]
+            dets_bottom_y = (detections[:,0] + detections[:,2])/2
+
+            #load templates
+            templates = room.templates_array[room.n_parts*cam + room.n_parts -1]
+            print templates.shape
+            templates_bottom_x = templates[:,2]
+            templates_bottom_y = (templates[:,1] + templates[:,3])/2
+
+            for i in range(detections.shape[0]):
+                #print detections[i,-1]
+                if detections[i,-1]*resize_pom > thresh:
+                    select = np.argmin((templates_bottom_x - dets_bottom_x[i])**2 + (templates_bottom_y - dets_bottom_y[i])**2)
+                    #print select
+                    Q[select] = 1
+
+        #Run NMS on top
+        Q_reshape = Q.reshape((room.H_grid,room.W_grid))
+        Q_out = 0*Q
+        while Q_reshape.max() ==1 : 
+            flat_max = np.argmax(Q_reshape)
+            x,y = flat_max/room.W_grid,flat_max%room.W_grid
+            Q_reshape[max(0,x - rad) : min(room.H_grid,x + rad),max(0,y - rad) : min(room.W_grid,y + rad)] = 0
+            Q_out[flat_max] = 1
+
+        return [Q_out]
+
+    
+
 

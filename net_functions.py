@@ -64,8 +64,8 @@ def prepare_regression_gt(assignment_rect_gt,assignment_binary_gt):
 def floatX(X):
     return np.asarray(X, dtype=theano.config.floatX)
 
-def init_weights(shape):
-    return theano.shared(floatX(np.random.randn(*shape) * 0.01))
+def init_weights(shape,name = None,scale = 0.01):
+    return theano.shared(floatX(np.random.randn(*shape) * scale),name)
 
 def init_gaussian(dim):
     alpha = np.ones(dim)
@@ -82,11 +82,16 @@ def softmax(X):
     e_x = T.exp(X - X.max(axis=1).dimshuffle(0, 'x'))
     return e_x / e_x.sum(axis=1).dimshuffle(0, 'x')
 
+def stab_logsoftmax(X):
+    #To implement
+    x_norm = X - X.max(axis=1).dimshuffle(0, 'x')
+    return x_norm - T.log(T.sum(T.exp(x_norm),axis = 1)).dimshuffle(0, 'x')
+
 def dropout(X, p=0.):
-    if p > 0:
-        retain_prob = 1 - p
-        X *= srng.binomial(X.shape, p=retain_prob, dtype=theano.config.floatX)
-        X /= retain_prob
+    retain_prob = 1 - p
+    srng = RandomStreams()
+    X *= srng.binomial(X.shape, p=retain_prob, dtype=theano.config.floatX)
+    X /= retain_prob
     return X
 
 def RMSprop(cost, params, lr=0.001, rho=0.9, epsilon=1e-6):

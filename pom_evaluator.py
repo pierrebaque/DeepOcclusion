@@ -23,17 +23,16 @@ import matplotlib.pyplot as plt
 
 class POM_evaluator(object):
     
-    def __init__(self,room,GT_labels_path_json = '../NDF_peds/data/ETH/labels_json/%08d.json',HW_GT_grid = (1240,480),shiftX_GT = 130,radius_match = 5, q_thresh = 0.5):
+    def __init__(self,room,GT_labels_path_json = '../NDF_peds/data/ETH/labels_json/%08d.json',HW_GT_grid = (1280,480),shiftX_GT = 115,radius_match = 5, q_thresh = 0.5):
         self.room = room
 
         self.GT_labels_path_json = GT_labels_path_json
-        self.H_GT_grid,self.W_GT_grid = HW_GT_grid[0],HW_GT_grid[1]
+        self.H_GT_grid,self.W_GT_grid = HW_GT_grid[0],HW_GT_grid[1] #Hacky parameters to make gt format fit with our POM format...
         self.shiftX = shiftX_GT
         self.radius_match = radius_match # This is with respect to the room resolution
         self.q_thresh = q_thresh
 
 
-    #For ETH dataset
     def get_GT_coordinates_fromjson(self,fid):
         #ShiftX is a momnetaneous hack to match detection and labelling after modification
         '''
@@ -42,7 +41,7 @@ class POM_evaluator(object):
         '''
         room = self.room
         
-        obj_text =codecs.open(self.GT_labels_path_json%fid, 'r', encoding='utf-8').read()
+        obj_text =codecs.open(self.GT_labels_path_json%room.img_index_list[fid], 'r', encoding='utf-8').read()
         b_new = json.loads(obj_text)
         c_new = np.int32(b_new[1:])    
 
@@ -126,7 +125,9 @@ class POM_evaluator(object):
         if verbose:
             print 'total cost: %d' % total
 
-        return total,np.asarray(TP),np.asarray(FP),np.asarray(FN)
+        return (total,np.asarray(TP).reshape((-1,2)).astype(int),
+                np.asarray(FP).reshape((-1,2)).astype(int),
+                np.asarray(FN).reshape((-1,2)).astype(int))
 
 
     def get_loss_arrays(self,TP,FP,FN):

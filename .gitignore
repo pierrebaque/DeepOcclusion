@@ -12,3 +12,5 @@ VGG/**/*.pickle
 *.ipynb
 *.txt
 Config.py
+Potentials/*
+Unaries/trainedModels/*

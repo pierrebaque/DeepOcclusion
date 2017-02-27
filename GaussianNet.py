@@ -535,7 +535,7 @@ class gaussianNet:
         return p_bin_np
                  
                  
-    def run_inference(self,em_it,bg_pretrained = True,params_scratch = False,verbose = False):
+    def run_inference(self,em_it = -1,bg_pretrained = True,regression_pretrained = False,params_scratch = False,verbose = False):
         
         if bg_pretrained:
             '''
@@ -559,14 +559,27 @@ class gaussianNet:
             load_gaussian_params_fromshared(self.params_gaussian,init_gaussian_params)
             random_reg_params = self.regression_net.get_random_regression_params()
             self.regression_net.load_regression_params(random_reg_params)
-        else:       
-            params_regression= pickle.load(open(Config.net_params_path + 'EM%d/params_regression.pickle'%(em_it)))
-            self.regression_net.load_regression_params(params_regression)
-            gaussian_params = pickle.load(open(Config.net_params_path + 'EM%d/params_gaussian.pickle'%(em_it)))
-            load_gaussian_params(self.params_gaussian,gaussian_params)
+        else:
+            
+            if regression_pretrained:
+                params_regression= pickle.load(open(Config.net_params_path + 'params_regression.pickle'))
+                self.regression_net.load_regression_params(params_regression)
+                gaussian_params = pickle.load(open(Config.net_params_path + 'params_gaussian.pickle'))
+                load_gaussian_params(self.params_gaussian,gaussian_params)
+
+                
+            else:
+                params_regression= pickle.load(open(Config.net_params_path + 'EM%d/params_regression.pickle'%(em_it)))
+                self.regression_net.load_regression_params(params_regression)
+                gaussian_params = pickle.load(open(Config.net_params_path + 'EM%d/params_gaussian.pickle'%(em_it)))
+                load_gaussian_params(self.params_gaussian,gaussian_params)
                  
         #Prepare output folders
-        emit_parts_root = Config.parts_root_folder%(em_it+1)
+        if em_it > -1 :
+            emit_parts_root = Config.parts_root_folder%(em_it+1)
+        else:
+            emit_parts_root = Config.parts_root_folder
+            
         if not os.path.exists(emit_parts_root):
             os.mkdir(emit_parts_root)
 
@@ -585,7 +598,7 @@ class gaussianNet:
                 
                 if bg_pretrained:
                     p_foreground_np = np.asarray(p_foreground[0]).transpose(1,2,0)
-                    parts_out = np.concatenate([p_bin_np>0.15,p_foreground_np>0.2],axis =2)
+                    parts_out = np.concatenate([p_bin_np>0.25,p_foreground_np>0.2],axis =2)
                     
                 else:
                     #Load background subtraction
