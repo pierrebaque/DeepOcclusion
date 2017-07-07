@@ -89,6 +89,36 @@ class POM_evaluator(object):
 
         return np.asarray(GT_coordinates)
 
+    
+    #For Terrace Dataset
+    def get_GT_coordinates_SALSA(self,fid,showWarning = True):
+        #ShiftX is a momnetaneous hack to match detection and labelling after modification
+        '''
+        Input: frame ID as in original dataset (15 fps)
+        Output: coordinates with respect to the resolution of detection (H_grid,W_grid)
+        '''
+        room = self.room
+        
+        all_detections = np.loadtxt('./groundtruth.txt')
+        if (fid - 3 )%45 != 0 and showWarning:
+            print "for accurate ground truth , use fid = 3 + i*45"
+        
+        gt_line = (fid - 3) / 45
+        
+        detections = all_detections[:,gt_line]
+        GT_coordinates = []
+
+        for det_id in range(detections.shape[0]):
+                
+                rec_ID = detections[det_id]
+                #print rec_ID
+                if rec_ID > -1:
+                    y = rec_ID%room.H_grid
+                    x = rec_ID/room.H_grid
+                    
+                    GT_coordinates.append((x,y))
+
+        return np.asarray(GT_coordinates)
 
     
     def hungarian_matching(self,GT_coordinates,det_coordinates,verbose = False):
@@ -101,7 +131,7 @@ class POM_evaluator(object):
 
         for i_d in range(n_dets):
             for i_gt in range(n_gts):
-                if ((det_coordinates[i_d,0] - GT_coordinates[i_gt,0])**2 + (det_coordinates[i_d,1] - GT_coordinates[i_gt,1])**2) < self.radius_match**2:
+                if ((det_coordinates[i_d,0] - GT_coordinates[i_gt,0])**2 + (det_coordinates[i_d,1] - GT_coordinates[i_gt,1])**2) <= self.radius_match**2:
                     matrix[i_d,i_gt] = 0
 
         m = Munkres()
@@ -179,6 +209,25 @@ class POM_evaluator(object):
             plt.show()
 
         return total,TP.shape[0],FP.shape[0],FN.shape[0]
+    
+    def get_Hungarian_score_SALSA(self,Q_out,fid,show = False,showWarning = True):
+        GT_coordinates = self.get_GT_coordinates_SALSA(fid,showWarning)
+        det_coordinates = self.room.get_coordinates_from_Q(Q_out[-1],q_thresh = self.q_thresh)
+        total,TP,FP,FN = self.hungarian_matching(GT_coordinates,det_coordinates,verbose = False)
+        
+        if show:
+            MAP_out = np.zeros((self.room.H_grid,self.room.W_grid))
+            for (i,j) in GT_coordinates:
+                MAP_out[int(i),int(j)] = 1
+            for (i,j) in det_coordinates:
+                MAP_out[int(i),int(j)] += 2
+
+            plt.imshow(MAP_out)
+            plt.colorbar()
+            plt.show()
+
+        return total,TP.shape[0],FP.shape[0],FN.shape[0]
+
 
     
         

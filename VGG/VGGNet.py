@@ -89,6 +89,7 @@ class VGG(object):
 			stacked_features = T.concatenate([x_r,c11_r,c12_r,c21_r,c22_r,c31_r,c32_r,c33_r,c41_r,c42_r,c43_r,c51_r,c52_r,c53_r],axis =1)
             
 			self.activation_volume = stacked_features
+			self.c53_r  = c53_r 
             
 			#return c53 #resolution should be 16 times smaller that input
 

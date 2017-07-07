@@ -64,8 +64,8 @@ def prepare_regression_gt(assignment_rect_gt,assignment_binary_gt):
 def floatX(X):
     return np.asarray(X, dtype=theano.config.floatX)
 
-def init_weights(shape):
-    return theano.shared(floatX(np.random.randn(*shape) * 0.01))
+def init_weights(shape,name = None,scale = 0.01):
+    return theano.shared(floatX(np.random.randn(*shape) * scale),name)
 
 def init_gaussian(dim):
     alpha = np.ones(dim)
@@ -82,11 +82,16 @@ def softmax(X):
     e_x = T.exp(X - X.max(axis=1).dimshuffle(0, 'x'))
     return e_x / e_x.sum(axis=1).dimshuffle(0, 'x')
 
+def stab_logsoftmax(X):
+    #To implement
+    x_norm = X - X.max(axis=1).dimshuffle(0, 'x')
+    return x_norm - T.log(T.sum(T.exp(x_norm),axis = 1)).dimshuffle(0, 'x')
+
 def dropout(X, p=0.):
-    if p > 0:
-        retain_prob = 1 - p
-        X *= srng.binomial(X.shape, p=retain_prob, dtype=theano.config.floatX)
-        X /= retain_prob
+    retain_prob = 1 - p
+    srng = RandomStreams()
+    X *= srng.binomial(X.shape, p=retain_prob, dtype=theano.config.floatX)
+    X /= retain_prob
     return X
 
 def RMSprop(cost, params, lr=0.001, rho=0.9, epsilon=1e-6):
@@ -133,6 +138,27 @@ def Adam(cost, params, lr=0.002, b1=0.1, b2=0.001, e=1e-8):
         updates.append((p, p_t))
     updates.append((i, i_t))
     return updates
+
+def Adam_fromgrad(grads, lr=0.002, b1=0.1, b2=0.001, e=1e-8):
+    updates = []
+    i = theano.shared(np.float32(0.))
+    i_t = i + 1.
+    fix1 = 1. - (1. - b1)**i_t
+    fix2 = 1. - (1. - b2)**i_t
+    lr_t = lr * (T.sqrt(fix2) / fix1)
+    for p, g in zip(params, grads):
+        m = theano.shared(np.float32(p.get_value() * 0.))
+        v = theano.shared(np.float32(p.get_value() * 0.))
+        m_t = (b1 * g) + ((1. - b1) * m)
+        v_t = (b2 * T.sqr(g)) + ((1. - b2) * v)
+        g_t = m_t / (T.sqrt(v_t) + e)
+        p_t = p - (lr_t * g_t)
+        updates.append((m, m_t))
+        updates.append((v, v_t))
+        updates.append((p, p_t))
+    updates.append((i, i_t))
+    return updates
+
 
 def SGD(cost, params, lr=0.002):
     updates = []
