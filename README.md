@@ -16,14 +16,14 @@ Unzip it in the root directory
 
 From the same root directory, type
 
-mv tozip/models VGG/models 
-mkdir Potentials/Parts/Run 
-mkdir Potentials/Unaries/Run 
+mv tozip/models VGG/models  
+mkdir Potentials/Parts/Run  
+mkdir Potentials/Unaries/Run   
 
-Then, run the notebooks in the following order: 
-RunParts.ipynb 
-RunUnaries.ipynb 
-RunPom.ipynb 
+Then, run the notebooks in the following order:   
+RunParts.ipynb   
+RunUnaries.ipynb   
+RunPom.ipynb   
 
 
 You should get some results. This is for running the pretrained model and not for training yet. 
