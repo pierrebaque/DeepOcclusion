@@ -6,7 +6,7 @@ Project page: https://pierrebaque.github.io/page-DeepOcclusion/
 The main dependency is the Theano package. 
 
 #### How to run.
-** Nb: The demo provided here is temporary and should be improved soon to make it more robust and easier to run. Happy to hear any feedback **
+**Nb: The demo provided here is temporary and should be improved soon to make it more robust and easier to run. Happy to read your feedbacks.**
 
 Clone the github code
 
