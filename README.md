@@ -3,8 +3,8 @@ Paper: https://arxiv.org/abs/1704.05775
 Project page: https://pierrebaque.github.io/page-DeepOcclusion/ 
 
 #### Dependencies
-The main dependency is the Theano package. 
-You also need the theano ROI-Pooling Layer from https://github.com/ddtm/theano-roi-pooling.
+The main dependency is the Theano package.   
+You also need to install the theano ROI-Pooling Layer from https://github.com/ddtm/theano-roi-pooling to get the unary potentials to work.
 
 #### How to run.
 *Nb: The demo provided here is temporary and should be improved soon to make it more robust and easier to run. Happy to read your feedbacks.*
