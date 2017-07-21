@@ -1,5 +1,6 @@
 **/EM*/**
 bkg/c*
+Potentials/*
 Results/validation/**
 tracking/pyKSP
 tracking/results/**
@@ -9,6 +10,6 @@ VGG/**/*.pickle
 *.dat
 *.pyc
 *.avi
-*.ipynb
 *.txt
 Config.py
+tozip/*
