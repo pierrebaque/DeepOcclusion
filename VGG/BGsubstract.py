@@ -8,7 +8,6 @@ from PIL import Image, ImageDraw
 import theano
 import theano.tensor as T
 from theano.tensor.nnet.conv import conv2d
-from theano.tensor.signal.downsample import max_pool_2d
 from theano.tensor.shared_randomstreams import RandomStreams
 
 class BGsubstract(object):
