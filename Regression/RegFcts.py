@@ -10,7 +10,6 @@ from theano.sandbox.rng_mrg import MRG_RandomStreams as RandomStreams
 import numpy as np
 import cPickle, gzip, numpy
 from theano.tensor.nnet.conv import conv2d
-from theano.tensor.signal.downsample import max_pool_2d
 
 from random import randint
 
