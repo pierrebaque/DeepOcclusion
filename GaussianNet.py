@@ -15,7 +15,6 @@ import pandas as pd
 from theano import tensor as T
 from theano.sandbox.rng_mrg import MRG_RandomStreams as RandomStreams
 from theano.tensor.nnet.conv import conv2d
-from theano.tensor.signal.downsample import max_pool_2d
 
 from random import randint
 from theano.compile.nanguardmode import NanGuardMode
