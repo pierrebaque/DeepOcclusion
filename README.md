@@ -28,3 +28,9 @@ RunPom.ipynb
 
 
 You should get some results. This is for running the pretrained model and not for training yet. 
+
+### Running on your own dataset
+In order to run the code on your own dataset, you just need to generate the ".pom" file corresponding to your cameras.
+This file describes the 2D boundary of each 3D bounding-box, projected on each camera, approximated by a rectangle.
+In order to generate such file, you can use our code with your camera calibrations:
+https://github.com/pierrebaque/generatePOMfile
