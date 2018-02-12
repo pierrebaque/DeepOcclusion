@@ -1,0 +1,28 @@
+To train a new model for substracting background:
+    1. Modify the information of bg substract in MyConfig.py in VGG folder. 
+    2. Run trainBGscale.py
+    3. The trained parameters will be stored in MyConfig.outputPath with file name as MyConfig.paramFileName.
+    
+To visualize the results of trained bg substractor:
+    1. Modify the information of testing images in MyConfig.py
+    2. Run testBGsub.ipynb
+    
+To train a new model for high-order potential (GMM and regressor):
+    1. Modify the information of GMM and regression model in MyConfig.py. 
+    2. Run retrainGaussian.py
+    3. The trained parameters will be stored in MyConfig.net_params_path
+    
+To visualize the results of GMM and regressor:
+    1. Modify the information for testing GMM in MyConfig.py
+    2. Run testGaussian.ipynb
+    
+If you want to use new trained parameters to calculate high-order potential for CRF, in the function run_inference in file GaussianNet.py, modify the name of pickle file to load for params_bg, params_regression, and gaussian_params.
+
+
+
+To train a new model for unary potential:
+    1. Modify the information of UnariesNet in MyConfig.py. 
+    2. Run retrainUnaries.py
+    3. The trained parameters will be stored in the MyConfig.unaries_params_path
+    
+If you want to use new trained parameters to calculate unary potential for CRF, modify the name of pickle file to load for params_to_load and params_VGG in the __init__ function of class unariesNet in the file UnariesNet.py.
