@@ -25,4 +25,8 @@ To train a new model for unary potential:
     2. Run retrainUnaries.py
     3. The trained parameters will be stored in the MyConfig.unaries_params_path
     
+To visualize the results of unary term:
+    1. Modify the information for testing unariesNet in MyConfig.py.
+    2. Run testUnaries.ipynb
+    
 If you want to use new trained parameters to calculate unary potential for CRF, modify the name of pickle file to load for params_to_load and params_VGG in the __init__ function of class unariesNet in the file UnariesNet.py.
