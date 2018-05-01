@@ -37,9 +37,8 @@ from roi_pooling import ROIPoolingOp
 from net_functions import *
 
 
-
 class unariesNet:
-    def __init__(self,load_pretrained = True):
+    def __init__(self,load_pretrained = False):
         #Path save params
         self.path_save_params = './Unaries/trainedModels/'
 
@@ -237,7 +236,7 @@ class unariesNet:
         #####
         #Loading the image preprocessed with segmentor
         templates_array = self.room.templates_array
-        image = self.room.load_images_stacked(fid)
+        image = self.room.load_images_stacked(fid, verbose = True)
 
         indices = templates_array.shape[1]
         indices_reduced,scores = self.room.get_indices_above(image,threshold= thresh)
@@ -251,7 +250,16 @@ class unariesNet:
         templates_no_null = templates[crit_no_null]
         indices_no_null = indices_reduced[crit_no_null]
 
-        # rois fill
+        if len(indices_no_null) == 0:  # First, relax the selection criteria
+            crit_no_null = (templates[:, 2] - templates[:, 0]) * (templates[:, 3] - templates[:, 1]) > 20
+            templates_no_null = templates[crit_no_null]
+            indices_no_null = indices_reduced[crit_no_null]
+        if len(indices_no_null) == 0:  # Second, randomly generated
+            ind = np.random.randint(0, templates.shape[0], size=3)
+            templates_no_null = templates[ind]
+            indices_no_null = [ind]
+
+        #rois fill
         rois_np = np.zeros((templates_no_null.shape[0],5)).astype(np.single)
 
         rois_np[:,1] = templates_no_null[:,1]
@@ -352,7 +360,7 @@ class unariesNet:
 
         for idbb, bbox in enumerate(rois_np.tolist()[:]):
             color = (100,0,0)
-            if labels[idbb]:
+            if labels[idbb]>0.6:
                 bbox = np.asarray(bbox).astype(np.int)
                 cv2.rectangle(rgb,(Config.CNN_factor*bbox[1],Config.CNN_factor*bbox[2]),
                               (Config.CNN_factor*bbox[3],Config.CNN_factor*bbox[4]),color,3)
@@ -392,10 +400,12 @@ class unariesNet:
                 x,rois_np,indices_no_null= self.load_batch_run(fid,cam)
                 p_out_test = self.run_func(x,rois_np)
                 scores[cam,indices_no_null] = np.log(p_out_test[:,0])
-                x_2_features = self.features_func(x,rois_np)
-                features[cam,indices_no_null,:] = x_2_features
+                if save_features:
+                    x_2_features = self.features_func(x,rois_np)
+                    features[cam,indices_no_null,:] = x_2_features
 
-
+            if not os.path.exists(os.path.dirname(Config.unaries_path)):
+                os.makedirs( os.path.dirname(Config.unaries_path) )
             np.save(self.unaries_out_path%Config.img_index_list[fid],scores)
             if save_features:
                 np.save(Config.unaries_path_features%Config.img_index_list[fid],features)
