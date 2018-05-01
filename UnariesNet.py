@@ -38,7 +38,7 @@ from net_functions import *
 
 
 class unariesNet:
-    def __init__(self,load_pretrained = False):
+    def __init__(self,load_pretrained = True):
         #Path save params
         self.path_save_params = './Unaries/trainedModels/'
 

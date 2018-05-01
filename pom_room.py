@@ -93,7 +93,7 @@ class POM_room(object):
             bboxes_cam_list.append(self.extract_BB_coordinates(cam))
 
         #Load the gaussian parameters
-        gauss_params = np.loadtxt(self.gaussian_params_path,dtype = 'int32')
+        gauss_params = np.loadtxt(self.gaussian_params_path,dtype = 'float32')
         gauss_params = gauss_params.reshape((n_parts-1,2,4))
 
         templates_array =np.zeros((N_cameras*n_parts,len(bboxes_cam_list[0]),4),dtype = 'int32')
@@ -122,8 +122,8 @@ class POM_room(object):
                     y0 = max(y0,0)
                     x1 = min(x1,H-1)
                     y1 = min(y1,W-1)
+
                     if (x1 - x0) > H/150.0 and (y1 - y0) > W/150.0: #Arbitrary criterium tu prevent too small BBs
-                    #if (x1 - x0) > 3 and (y1 - y0) > 3:
                         templates_array[n_parts*cam + part,i,:] = np.asarray([x0,y0,x1,y1])
                     else:
                         rand_H,rand_W = random.randint(0,H-1),random.randint(0,W-1)
@@ -152,7 +152,7 @@ class POM_room(object):
 
         return image
     
-    def load_images_stacked(self,fid,verbose = False):
+    def load_images_stacked(self,fid,verbose = False):#load results of part
         im_out = []
         for cam in self.cameras_list:
             if verbose:
@@ -185,22 +185,20 @@ class POM_room(object):
         return np.where(scores > threshold)[0],scores
 
     def plot_output(self,Q_out,fid,cam,part,thresh = 0.9,iteration = -1,Shift = []):
-
         image =self.load_images_stacked(fid)
-
         img_cam = image[self.n_parts*cam+part]
         Q_plot = Q_out[iteration]
         if len(Shift) == 0:
             templates_cam = self.templates_array[self.n_parts*cam+part] 
         else:
             templates_cam = self.templates_array[self.n_parts*cam+part] + Shift[iteration][self.n_parts*cam+part]
+            
         H,W = image.shape[1:]
         img_out = np.zeros((H,W,3))
         img_out[:,:,0] = img_cam
         Q_abs = np.ones((H,W))
         for i in range(templates_cam.shape[0]):
             if Q_plot[i] > 0.001:
-            #if scores[i]>0.6:
                 Q_abs[templates_cam[i,0]:templates_cam[i,2],templates_cam[i,1]:templates_cam[i,3]] *= 1-Q_plot[i]
                 img_out[:,:,2] = 1-Q_abs
                 if Q_plot[i] > thresh:
@@ -210,7 +208,7 @@ class POM_room(object):
 
         plt.imshow(img_out)
         plt.show()
-        
+
     def save_dat(self,Q_out,fid,folder_out,iteration = -1,verbose = False):
         out_path= folder_out + '%08d.dat'%self.img_index_list[fid]
 
